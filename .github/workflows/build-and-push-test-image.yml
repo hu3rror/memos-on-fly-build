@@ -19,7 +19,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: neosmemo
+          username: hu3rror
           password: ${{ secrets.DOCKER_NEOSMEMO_TOKEN }}
 
       - name: Login to GitHub Container Registry
@@ -41,8 +41,8 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            neosmemo/memos
-            ghcr.io/usememos/memos
+            hu3rror/memos-fly
+            ghcr.io/hu3rror/memos-fly
           flavor: |
             latest=false
           tags: |
