@@ -1,0 +1,193 @@
+From ce2c3115f58d1ec84bdeafd8163ad4fa54ef67a6 Mon Sep 17 00:00:00 2001
+From: Hu3rror <19755727+hu3rror@users.noreply.github.com>
+Date: Sun, 16 Apr 2023 17:18:51 +0800
+Subject: [PATCH] feat: Add litestream support
+
+---
+ .../build-and-push-release-image.yml          |  6 +--
+ .../workflows/build-and-push-test-image.yml   |  6 +--
+ Dockerfile                                    | 17 ++++++-
+ etc/litestream.yml                            |  8 +++
+ fly.toml                                      | 51 +++++++++++++++++++
+ scripts/run.sh                                | 16 ++++++
+ 6 files changed, 97 insertions(+), 7 deletions(-)
+ create mode 100644 etc/litestream.yml
+ create mode 100644 fly.toml
+ create mode 100755 scripts/run.sh
+
+diff --git a/.github/workflows/build-and-push-release-image.yml b/.github/workflows/build-and-push-release-image.yml
+index d939984..ae14d87 100644
+--- a/.github/workflows/build-and-push-release-image.yml
++++ b/.github/workflows/build-and-push-release-image.yml
+@@ -27,7 +27,7 @@ jobs:
+       - name: Login to Docker Hub
+         uses: docker/login-action@v2
+         with:
+-          username: neosmemo
++          username: hu3rror
+           password: ${{ secrets.DOCKER_NEOSMEMO_TOKEN }}
+ 
+       - name: Login to GitHub Container Registry
+@@ -49,8 +49,8 @@ jobs:
+         uses: docker/metadata-action@v4
+         with:
+           images: |
+-            neosmemo/memos
+-            ghcr.io/usememos/memos
++            hu3rror/memos-fly
++            ghcr.io/hu3rror/memos-fly
+           tags: |
+             type=raw,value=latest
+             type=semver,pattern={{version}},value=${{ env.VERSION }}
+diff --git a/.github/workflows/build-and-push-test-image.yml b/.github/workflows/build-and-push-test-image.yml
+index 14efe63..3b04583 100644
+--- a/.github/workflows/build-and-push-test-image.yml
++++ b/.github/workflows/build-and-push-test-image.yml
+@@ -19,7 +19,7 @@ jobs:
+       - name: Login to Docker Hub
+         uses: docker/login-action@v2
+         with:
+-          username: neosmemo
++          username: hu3rror
+           password: ${{ secrets.DOCKER_NEOSMEMO_TOKEN }}
+ 
+       - name: Login to GitHub Container Registry
+@@ -41,8 +41,8 @@ jobs:
+         uses: docker/metadata-action@v4
+         with:
+           images: |
+-            neosmemo/memos
+-            ghcr.io/usememos/memos
++            hu3rror/memos-fly
++            ghcr.io/hu3rror/memos-fly
+           flavor: |
+             latest=false
+           tags: |
+diff --git a/Dockerfile b/Dockerfile
+index 6158c72..db521cd 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -23,6 +23,16 @@ RUN go build -o memos ./main.go
+ 
+ # Make workspace with above generated files.
+ FROM alpine:3.16 AS monolithic
++
++# Install litestream
++ARG LITESTREAM_VERSION=v0.3.9
++ADD https://github.com/benbjohnson/litestream/releases/download/$LITESTREAM_VERSION/litestream-$LITESTREAM_VERSION-linux-amd64-static.tar.gz /tmp/litestream.tar.gz
++RUN tar -C /usr/local/bin -xzf /tmp/litestream.tar.gz
++
++# Add litestream config
++COPY etc/litestream.yml /etc/litestream.yml
++
++# Deal with memos
+ WORKDIR /usr/local/memos
+ 
+ RUN apk add --no-cache tzdata
+@@ -35,4 +45,9 @@ EXPOSE 5230
+ # Directory to store the data, which can be referenced as the mounting point.
+ RUN mkdir -p /var/opt/memos
+ 
+-ENTRYPOINT ["./memos", "--mode", "prod", "--port", "5230"]
++# Copy startup script and make it executable.
++COPY scripts/run.sh ./run.sh
++RUN chmod +x ./run.sh
++
++# Litestream spawns memos as subprocess.
++CMD ["./run.sh"]
+diff --git a/etc/litestream.yml b/etc/litestream.yml
+new file mode 100644
+index 0000000..6c5e13c
+--- /dev/null
++++ b/etc/litestream.yml
+@@ -0,0 +1,8 @@
++dbs:
++  - path: $DB_PATH
++    replicas:
++      - type: s3
++        bucket: $LITESTREAM_REPLICA_BUCKET
++        path: $LITESTREAM_REPLICA_PATH
++        endpoint: $LITESTREAM_REPLICA_ENDPOINT
++        force-path-style: true
+diff --git a/fly.toml b/fly.toml
+new file mode 100644
+index 0000000..7d84bf6
+--- /dev/null
++++ b/fly.toml
+@@ -0,0 +1,51 @@
++# fly.toml file generated for memos
++
++app = "memos_example"                                               # change to whatever name you want if the name is not occupied
++kill_signal = "SIGINT"
++kill_timeout = 5
++processes = []
++
++[build]
++  image = "hu3rror/memos-fly:latest"                                # Do not change unless you build your own image
++
++[env]
++  DB_PATH = "/var/opt/memos/memos_prod.db"                          # do not change
++
++  # Details see: https://litestream.io/guides/backblaze/
++  LITESTREAM_REPLICA_BUCKET = "your_bucket_name"                    # change to your litestream bucket name
++  LITESTREAM_REPLICA_ENDPOINT = "s3.us-west-000.backblazeb2.com"    # change to your litestream endpoint url
++  LITESTREAM_REPLICA_PATH = "memos_prod.db"                         # keep the default or change to whatever path you want
++
++[mounts]
++  source="memos_data"                                               # change to your fly.io volume name
++  destination="/var/opt/memos"                                      # do not change
++
++[experimental]
++  allowed_public_ports = []
++  auto_rollback = true
++
++[[services]]
++  http_checks = []
++  internal_port = 5230                                              # change to port 5230
++  processes = ["app"]
++  protocol = "tcp"
++  script_checks = []
++  [services.concurrency]
++    hard_limit = 25
++    soft_limit = 20
++    type = "connections"
++
++  [[services.ports]]
++    force_https = true
++    handlers = ["http"]
++    port = 80
++
++  [[services.ports]]
++    handlers = ["tls", "http"]
++    port = 443
++
++  [[services.tcp_checks]]
++    grace_period = "1s"
++    interval = "15s"
++    restart_limit = 0
++    timeout = "2s"
+diff --git a/scripts/run.sh b/scripts/run.sh
+new file mode 100755
+index 0000000..b8377e0
+--- /dev/null
++++ b/scripts/run.sh
+@@ -0,0 +1,16 @@
++#!/bin/sh
++set -e
++
++# Restore the database if it does not already exist.
++if [ -f "$DB_PATH" ]; then
++  echo "Database exists, skipping restore."
++else
++  echo "No database found, attempt to restore from a replica."
++  litestream restore -if-replica-exists "$DB_PATH"
++  echo "Finished restoring the database."
++fi
++
++echo "Starting litestream & memos service."
++
++# Run litestream with your app as the subprocess.
++exec litestream replicate -exec "./memos --mode prod --port 5230"
+-- 
+2.40.1
+
