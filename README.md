@@ -1,62 +1,23 @@
-# memos
+# memos-on-fly-build
 
-<img height="72px" src="https://usememos.com/logo.webp" alt="✍️ memos" align="right" />
+This project has been deprecated, please use the new refactored version: [memos-litestream](https://github.com/hu3rror/memos-litestream)
 
-A lightweight, self-hosted memo hub. Open Source and Free forever.
+If you used this project `memos-on-fly-build` before, you can simply modify the image `hu3rror/memos-on-fly` to `hu3rror/memos-litestream` and redeploy it.
 
-<a href="https://demo.usememos.com/">Live Demo</a> •
-Discuss in <a href="https://t.me/+-_tNF1k70UU4ZTc9">Telegram</a> / <a href="https://discord.gg/tfPJa4UmAv">Discord</a>
+For more details on building on fly.io, please check https://github.com/hu3rror/memos-on-fly.
 
-<p>
-  <a href="https://github.com/usememos/memos/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/usememos/memos" /></a>
-  <a href="https://discord.gg/tfPJa4UmAv"><img alt="Discord" src="https://img.shields.io/badge/discord-chat-5865f2?logo=discord&logoColor=f5f5f5" /></a>
-</p>
+If you want to know how to run on a personal server and locally, please see https://github.com/hu3rror/memos-litestream.
 
-![demo](https://usememos.com/demo.webp)
-
-## Key points
-
-- Open source and free forever
-- Self-hosting with Docker in seconds
-- Markdown support
-- Customizable and sharable
-- RESTful API for self-service
-
-## Deploy with Docker in seconds
-
-```bash
-docker run -d --name memos -p 5230:5230 -v ~/.memos/:/var/opt/memos ghcr.io/usememos/memos:latest
-```
-
-> The `~/.memos/` directory will be used as the data directory on your local machine, while `/var/opt/memos` is the directory of the volume in Docker and should not be modified.
-
-Learn more about [other installation methods](https://usememos.com/docs/install).
-
-## Contribution
-
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. We greatly appreciate any contributions you make. Thank you for being a part of our community! 🥰
-
-<a href="https://github.com/usememos/memos/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=usememos/memos" />
-</a>
+Thank you!
 
 ---
 
-- [Moe Memos](https://memos.moe/) - Third party client for iOS and Android
-- [lmm214/memos-bber](https://github.com/lmm214/memos-bber) - Chrome extension
-- [Rabithua/memos_wmp](https://github.com/Rabithua/memos_wmp) - WeChat MiniProgram
-- [qazxcdswe123/telegramMemoBot](https://github.com/qazxcdswe123/telegramMemoBot) - Telegram bot
-- [eallion/memos.top](https://github.com/eallion/memos.top) - Static page rendered with the Memos API
-- [eindex/logseq-memos-sync](https://github.com/EINDEX/logseq-memos-sync) - Logseq plugin
-- [JakeLaoyu/memos-import-from-flomo](https://github.com/JakeLaoyu/memos-import-from-flomo) - Import data. Support from flomo, wechat reading
-- [Send to memos](https://sharecuts.cn/shortcut/12640) - A shortcut for iOS
-- [Memos Raycast Extension](https://www.raycast.com/JakeYu/memos) - Raycast extension
-- [Memos Desktop](https://github.com/xudaolong/memos-desktop) - Third party client for MacOS and Windows
+这个项目已被废弃，请使用新的重构版本： [memos-litestream](https://github.com/hu3rror/memos-litestream)
 
-## Acknowledgements
+如果你以前使用过这个项目`memos-on-fly-build`，你可以将镜像`hu3rror/memos-on-fly`修改为`hu3rror/memos-litestream`并重新部署。
 
-- Thanks [Uffizzi](https://www.uffizzi.com/) for sponsoring preview environments for PRs.
+关于在 fly.io 上构建的更多细节，请查看 https://github.com/hu3rror/memos-on-fly
 
-## Star history
+如果你想知道如何在个人服务器和本地运行，请查看 https://github.com/hu3rror/memos-litestream 
 
-[![Star History Chart](https://api.star-history.com/svg?repos=usememos/memos&type=Date)](https://star-history.com/#usememos/memos&Date)
+感谢~
